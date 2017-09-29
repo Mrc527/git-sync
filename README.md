@@ -18,15 +18,13 @@ This hook uses Bash. Make sure it is installed.
 
 #### Local installation 
 
-In a local --bare git repository, this hook must be placed in the hooks directory in the git directory.
-If an update hook exists, the content of this hook must be pasted into the existing.
-Alternatively, the pre-recieve hook can be used.
+* Copy the post-recieve.d hook into the hooks directory.
+* Run "chmod a+x git-sync" to make it executable.
 
 #### Gitlab installation
 http://gitlab.org/
 
-Locate the path to the given repository, copy the pre-recieve hook into the hooks directory.
-Run "chmod a+x pre-recieve" to make it executable.
-If this hook should be activated on more than a few repositories, consider placing it in a central place and
-link to it.
+* Locate the hooks path (usually /opt/gitlab/embedded/service/gitlab-shell/hooks/), copy the post-recieve.d hook into the hooks directory.
+* Run "chmod a+x git-sync" to make it executable.
+
 
