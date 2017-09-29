@@ -1,7 +1,7 @@
 # git-sync
 The aim of this project is to replicate a git branch of the upstream repository to another branch of a target repository.
 
-This is similar to Syncing a fork with the upstream, difference is that in this case you dont want the fork to access directly the upstream repository.
+This is similar to [Syncing a fork](https://help.github.com/articles/syncing-a-fork/) with the upstream, difference is that in this case you dont want the fork to access directly the upstream repository.
 
 ## Real case scenario
 I use this script in my company to allow a customer to have access to only approved versions of the code.
