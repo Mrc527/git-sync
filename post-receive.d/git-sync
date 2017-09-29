@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+ORIGINAL_PATH=$PWD
+
+GIT=/usr/bin/git
+
+updateTarget() {
+	logger "Starting GIT-Sync procedure"
+	cd /tmp/
+	mkdir /tmp/$REPOSITORY_PATH
+	echo "Executing $GIT clone git@scm.e-globe-solutions.com:$REPOSITORY_FULLNAME /tmp/$REPOSITORY_PATH"
+        $GIT clone git@scm.e-globe-solutions.com:$REPOSITORY_FULLNAME /tmp/$REPOSITORY_PATH
+
+	ls -la /tmp/$REPOSITORY_PATH
+		
+	GIT="$GIT -C /tmp/$REPOSITORY_PATH "
+
+	$GIT status
+
+	echo "Checking out tag $TAG"
+	$GIT checkout $TAG
+
+	DEST_URL=$(cat "/tmp/$REPOSITORY_PATH/git_sync.json" | python3 -c "import sys, json; print(json.load(sys.stdin)['dest_repo'])")
+	DEST_BRANCH=$(cat "/tmp/$REPOSITORY_PATH/git_sync.json" | python3 -c "import sys, json; print(json.load(sys.stdin)['dest_branch'])")
+        echo "Adding target remote $DEST_URL"
+        $GIT remote add target $DEST_URL
+
+	echo "Creating target branch: $DEST_BRANCH"
+	$GIT branch -d $DEST_BRANCH
+	$GIT checkout -b $DEST_BRANCH
+
+
+	echo "Pushing to target remote"
+	$GIT push -f -u target $DEST_BRANCH
+
+	echo "Push done"
+	rm -rf /tmp/$REPOSITORY_PATH
+	logger "GIT-Sync done"
+	return 0
+
+}
+
+unset GIT_DIR
+
+
+if [ $(git rev-parse --is-bare-repository) = true ]
+then
+    REPOSITORY_BASENAME=$(basename "$PWD")
+else
+    REPOSITORY_BASENAME=$(basename $(readlink -nf "$PWD"/..))
+fi
+
+REPOSITORY_FULLNAME=${ORIGINAL_PATH#/var/opt/gitlab/git-data/repositories/}
+REPOSITORY_PATH=${REPOSITORY_FULLNAME%$REPOSITORY_BASENAME}
+
+while read oldrev newrev ref
+do
+    if [[ $ref =~ .*/tags/sync.* ]] && [[ "$newrev" != "0000000000000000000000000000000000000000" ]];
+    then
+#        logger "Sync tag received: sync started."
+	TAG=$newrev
+	updateTarget
+    else
+#        logger "Ref $ref successfully received. Doing nothing."
+    fi
+#	logger "Received: oldrev $oldrev, newrev $newrev, ref $ref, asd $asd"
+#	logger "also got $1, $2, $3"
+done
+
+cd $ORIGINAL_PATH
